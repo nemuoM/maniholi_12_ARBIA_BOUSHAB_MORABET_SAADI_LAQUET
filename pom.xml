@@ -33,6 +33,13 @@
             <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>main</groupId>
+            <artifactId>maniholi</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/maniholi.jar</systemPath>
+        </dependency>
     </dependencies>
 
 </project>

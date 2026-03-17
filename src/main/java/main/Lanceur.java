@@ -46,7 +46,7 @@ public class Lanceur {
      *  Vous pouvez positionner sa valeur Ã  false, si vous
      *  ne voulez plus voir s'afficher le logo au lancement.
      */
-    public static final boolean LOGO_ACTIF = false;
+    public static final boolean LOGO_ACTIF = true;
 
     /**
      * Rayon autour de la case cliquÃ©e pour rechercher et afficher dans la console
@@ -112,11 +112,11 @@ public class Lanceur {
          * --- GÃ©nÃ©ration du plateau ---                  *
          * Vous pouvez utiliser le plateau de votre choix *
          * ************************************************/
-        final Plateau plateau = Plateau.generePlateauTournoi(); // un plateau alÃ©atoire de tournoi
+        //final Plateau plateau = Plateau.generePlateauTournoi(); // un plateau alÃ©atoire de tournoi
         //final Plateau plateau = Plateau.generePlateauAleatoire(100, 10, 8, 8, 20); // un plateau alÃ©atoire 20x20 pour une partie de 100 tours, 32 moulins, 32 oliveraies et 80 rochers
         //final Plateau plateau = Plateau.generePlateauAleatoire(1200, 10, 8, 8, 20); // un plateau alÃ©atoire 20x20 pour une partie de 1200 tours, 32 moulins, 32 oliveraies et 80 rochers
         //final Plateau plateau = new Plateau(300, Plateau.TEXTE_PLATEAU_ANORMAL_8x8_1); // un plateau prÃ©dÃ©fini 8x8 de test
-        //final Plateau plateau = new Plateau(1000, Plateau.TEXTE_PLATEAU_ENONCE); // le plateau 20x20 de l'Ã©noncÃ© pour une partie de 1000 tours
+        final Plateau plateau = new Plateau(1000, Plateau.TEXTE_PLATEAU_ENONCE); // le plateau 20x20 de l'Ã©noncÃ© pour une partie de 1000 tours
 
         /* ***********************************
          * --- CrÃ©ation du maitre de jeu --- *
@@ -135,10 +135,10 @@ public class Lanceur {
          * non ajoutÃ©s explicitement sont ajoutÃ©s comme des instances   *
          * de Joueur, c'est-Ã -dire des joueurs Ã  dÃ©placement alÃ©atoire. *
          * **************************************************************/
-        jeu.metJoueurEnPosition(1, new MonJoueur("Moumen")); // un joueur spÃ©cifique
-        jeu.metJoueurEnPosition(0, new JoueurMo("Mohammed")); // un joueur spÃ©cifique
-        jeu.metJoueurEnPosition(3, new MonJoueurAmine("Amine")); // un joueur spÃ©cifique
-        jeu.metJoueurEnPosition(2, new MonJoueurKemil("Kémil")); // un joueur spÃ©cifique
+        jeu.metJoueurEnPosition(0, new MonJoueur("Moumen")); // un joueur spÃ©cifique
+        jeu.metJoueurEnPosition(1, new JoueurMo("Mohamed")); // un joueur spÃ©cifique
+        jeu.metJoueurEnPosition(2, new MonJoueurAmine("Amine")); // un joueur spÃ©cifique
+        jeu.metJoueurEnPosition(3, new MonJoueurKemil("Kémil")); // un joueur spÃ©cifique
         //jeu.metJoueurEnPosition(1, new JoueurHumain("Panisse",fenetre)); // un joueur humain
         //jeu.metJoueurEnPosition(2, new Joueur("Escartefigue")); // un joueur Ã  dÃ©placement alÃ©atoire
         //jeu.metJoueurEnPosition(3, new Joueur("M. Brun")); // un joueur Ã  dÃ©placement alÃ©atoire
@@ -155,11 +155,6 @@ public class Lanceur {
          * --- Gestion des clics souris sur le plateau --- *
          * *************************************************/
         gestionClicsPlateau(fenetre, plateau);
-
-        /* *************************************************
-         * --- Affichage des stats de fin de partie ---    *
-         * *************************************************/
-        afficherStatsFinPartie(plateau);
     }
 
     /**
@@ -223,50 +218,5 @@ public class Lanceur {
                     System.out.print(pointToString(p)));//System.out.print("(" + p.x + "," + p.y + ") "));
             return k;
         }).forEachOrdered((_item) -> System.out.println());
-    }
-
-    private static void afficherStatsFinPartie(Plateau plateau) {
-        Thread t = new Thread(() -> {
-            boolean affiche = false;
-            while (!affiche) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    return;
-                }
-                if (plateau.donneNombreCoupsJoues() < plateau.donneNombreCoupsTotal() - 1) {
-                    continue;
-                }
-                affiche = true;
-                int taille = plateau.donneTaille();
-                int moulins = 0;
-                int arbres = 0;
-                for (int y = 0; y < taille; y++) {
-                    for (int x = 0; x < taille; x++) {
-                        int contenu = plateau.donneContenuCelluleSansJoueur(x, y);
-                        if (Plateau.contientUneZoneInfranchissable(contenu)) {
-                            arbres++;
-                        }
-                        if (Plateau.donneUtilisateurDeLUniteDeProduction(contenu) >= 0) {
-                            moulins++;
-                        }
-                    }
-                }
-                System.out.println("Taille grille: " + taille + "x" + taille);
-                System.out.println("Nombre de moulins: " + moulins);
-                System.out.println("Nombre d'arbres: " + arbres);
-                Joueur[] joueurs = plateau.donneJoueurs();
-                if (joueurs != null) {
-                    for (Joueur joueur : joueurs) {
-                        if (joueur == null) {
-                            continue;
-                        }
-                        System.out.println("Score final " + joueur.donneNom() + ": " + joueur.donnePoints());
-                    }
-                }
-            }
-        });
-        t.setDaemon(true);
-        t.start();
     }
 }
