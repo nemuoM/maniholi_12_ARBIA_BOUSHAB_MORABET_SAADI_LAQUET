@@ -329,6 +329,77 @@ public class MonJoueur extends Joueur {
             }
         }
 
+        // --- TAKEDOWN & DEFENSIVE LOGIC (V3) ---
+        // Evaluate other players as targets for Manille
+        if (monEnergie >= 40) { // On ne se bat pas si on est épuisé
+            Joueur[] joueurs = plateau.donneJoueurs();
+            int monScore = donnePoints();
+            int maxScoreVal = -1;
+            int maxScoreId = -1;
+            
+            if (joueurs != null) {
+                for (Joueur j : joueurs) {
+                    if (j != null && j.donnePoints() > maxScoreVal) {
+                        maxScoreVal = j.donnePoints();
+                        maxScoreId = j.donneRang();
+                    }
+                }
+                
+                int[] cooldowns = plateau.donneToursRestantEchange();
+                
+                for (Joueur j : joueurs) {
+                    if (j == null || j.donneRang() == donneRang()) continue;
+                    Point jp = j.donnePosition();
+                    
+                    // Si la cible est dans une oliveraie ou en cooldown, on ne peut pas la maniller utilement
+                    if (cooldowns != null && cooldowns[j.donneRang()] > 0) continue;
+                    if (Plateau.contientUneUniteDeRessourcage(plateau.donneContenuCelluleSansJoueur(jp.x, jp.y))) continue;
+                    
+                    boolean isLeaderTarget = (j.donneRang() == maxScoreId && maxScoreVal > monScore + 2000);
+                    boolean isThreat = false;
+                    
+                    // Détection des menaces sur nos moulins
+                    for (int y = 0; y < taille; y++) {
+                        for (int x = 0; x < taille; x++) {
+                            int c = plateau.donneContenuCellule(x, y);
+                            if (Plateau.donneUtilisateurDeLUniteDeProduction(c) == donneRang()) {
+                                if (distanceManhattan(jp, new Point(x, y)) <= 2) {
+                                    isThreat = true; 
+                                    break;
+                                }
+                            }
+                        }
+                        if (isThreat) break;
+                    }
+                    
+                    if (isLeaderTarget || isThreat) {
+                        List<Noeud> safeDangers = new ArrayList<>(obstaclesSupplementaires);
+                        // Retirer le bouclier de danger autour de cette cible spécifique pour l'A*
+                        safeDangers.removeIf(n -> Math.abs(n.getX() - jp.x) + Math.abs(n.getY() - jp.y) <= 1);
+                        
+                        List<Noeud> chemin = plateau.donneCheminAvecObstaclesSupplementaires(depart, jp, safeDangers);
+                        if (chemin != null && chemin.size() > 0) {
+                            int distAdv = chemin.size() - 1;
+                            if (distAdv > nbToursRestants) continue;
+                            if (monEnergie < distAdv + 10) continue; // Marge de course
+                            
+                            double scoreAttaque = -999999;
+                            if (isLeaderTarget) {
+                                scoreAttaque = 2000.0 - distAdv * 10.0; // Kamikaze très prioritaire
+                            } else if (isThreat) {
+                                scoreAttaque = 1500.0 - distAdv * 8.0; // Défense active
+                            }
+                            
+                            if (scoreAttaque > meilleurScore) {
+                                meilleurScore = scoreAttaque;
+                                meilleureCible = jp;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return meilleureCible;
     }
 
